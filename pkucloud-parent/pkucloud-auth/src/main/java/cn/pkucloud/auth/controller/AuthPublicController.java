@@ -9,6 +9,7 @@ import static cn.pkucloud.auth.entity.wx.WxLoginType.*;
 
 @RestController
 @RequestMapping("api")
+@CrossOrigin
 public class AuthPublicController {
     private final AuthService authService;
 

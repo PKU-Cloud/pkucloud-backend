@@ -1,14 +1,12 @@
 package cn.pkucloud.wxmp.service.impl;
 
-import cn.pkucloud.common.Result;
-import cn.pkucloud.wxmp.entity.Auth;
-import cn.pkucloud.wxmp.entity.wx.UserInfoResult;
-import cn.pkucloud.wxmp.entity.wx.XmlEntity;
-import cn.pkucloud.wxmp.entity.wx.XmlRequest;
-import cn.pkucloud.wxmp.entity.wx.XmlResponse;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlEntity;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlRequest;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlResponse;
 import cn.pkucloud.wxmp.exception.AesException;
 import cn.pkucloud.wxmp.feign.AuthClient;
 import cn.pkucloud.wxmp.feign.MpClient;
+import cn.pkucloud.wxmp.service.MpMsgService;
 import cn.pkucloud.wxmp.service.AccessTokenService;
 import cn.pkucloud.wxmp.service.MpService;
 import cn.pkucloud.wxmp.util.ByteGroup;
@@ -33,6 +31,8 @@ import java.util.UUID;
 public class MpServiceImpl implements MpService {
     private final AccessTokenService accessTokenService;
 
+    private final MpMsgService mpMsgService;
+
     private final MpClient mpClient;
 
     private final AuthClient authClient;
@@ -51,11 +51,12 @@ public class MpServiceImpl implements MpService {
     @Value("${wx.mp.encoding_aes_key}")
     private String ENCODING_AES_KEY;
 
-    public MpServiceImpl(MpClient mpClient, AuthClient authClient, AccessTokenService accessTokenService) {
+    public MpServiceImpl(AccessTokenService accessTokenService, MpMsgService mpMsgService, MpClient mpClient, AuthClient authClient) {
+        this.accessTokenService = accessTokenService;
+        this.mpMsgService = mpMsgService;
         this.xmlMapper = new XmlMapper();
         this.mpClient = mpClient;
         this.authClient = authClient;
-        this.accessTokenService = accessTokenService;
     }
 
     @Override
@@ -69,66 +70,70 @@ public class MpServiceImpl implements MpService {
 
     @Override
     public XmlResponse msgHandler(String signature, int timestamp, String nonce, String openid, String encrypt_type, String msg_signature, XmlRequest request) throws AesException, JsonProcessingException {
-        String toUserName = request.getToUserName();
         String encrypt = request.getEncrypt();
         XmlEntity entity = decryptMsg(msg_signature, timestamp, nonce, encrypt);
         System.out.println("entity = " + entity);
-        String access_token = accessTokenService.getAccessToken();
-        String toUserName1 = entity.getToUserName();
+        String toUserName = entity.getToUserName();
         String fromUserName = entity.getFromUserName();
         int createTime = entity.getCreateTime();
         String msgType = entity.getMsgType();
+
         switch (msgType) {
             case "text":
-                System.out.println("文本");
                 String content = entity.getContent();
-                return replyTextMsg(fromUserName, content);
+                return mpMsgService.textMsgHandler(fromUserName, content);
+
             case "image":
-                System.out.println("图片");
-                break;
+                String picUrl = entity.getPicUrl();
+                String imageMediaId = entity.getMediaId();
+                return mpMsgService.imageMsgHandler(fromUserName, picUrl, imageMediaId);
+
             case "voice":
-                System.out.println("语音");
-                break;
+                String voiceMediaId = entity.getMediaId();
+                String format = entity.getFormat();
+                String recognition = entity.getRecognition();
+                return mpMsgService.voiceMsgHandler(fromUserName, voiceMediaId, format, recognition);
+
             case "video":
-                System.out.println("视频");
-                break;
+                String videoMediaId = entity.getMediaId();
+                String videoThumbMediaId = entity.getThumbMediaId();
+                return mpMsgService.videoMsgHandler(fromUserName, videoMediaId, videoThumbMediaId);
+
             case "shortvideo":
-                System.out.println("小视频");
-                break;
+                String shortVideoMediaId = entity.getMediaId();
+                String shortVideoThumbMediaId = entity.getThumbMediaId();
+                return mpMsgService.shortVideoMsgHandler(fromUserName, shortVideoMediaId, shortVideoThumbMediaId);
+
             case "location":
-                System.out.println("地理位置");
-                break;
+                double location_x = entity.getLocation_X();
+                double location_y = entity.getLocation_Y();
+                int scale = entity.getScale();
+                String label = entity.getLabel();
+                return mpMsgService.locationMsgHandler(fromUserName, location_x, location_y, scale, label);
+
             case "link":
-                System.out.println("链接");
-                break;
+                String title = entity.getTitle();
+                String description = entity.getDescription();
+                String url = entity.getUrl();
+                return mpMsgService.linkMsgHandler(fromUserName, title, description, url);
+
             case "event":
                 String event = entity.getEvent();
                 switch (event) {
                     case "subscribe":
-                        System.out.println("订阅");
-                        UserInfoResult userInfoResult = mpClient.getUserInfo(access_token, fromUserName, "zh-CN");
-                        String unionid = userInfoResult.getUnionid();
-                        String nickname = userInfoResult.getNickname();
-                        Result<Auth> authResult = authClient.getAuthByWxUnionId(unionid);
-                        String msg = nickname + "，欢迎你！";
-                        if (0 == authResult.getCode()) {
-                            Auth auth = authResult.getData();
-                            String pkuId = auth.getPkuId();
-                            msg = "你已注册，学号" + pkuId;
-                        } else {
-                            msg = "你还没有注册，请先注册。";
-                        }
-                        return replyTextMsg(fromUserName, msg);
+                        return mpMsgService.subscribeEventHandler(fromUserName);
+
                     case "unsubscribe":
-                        System.out.println("取消订阅");
-                        break;
+                        return mpMsgService.unsubscribeEventHandler(fromUserName);
+
                     default:
                         System.out.println(msgType);
                         break;
                 }
                 break;
+
             default:
-                break;
+                return null;
         }
         return null;
     }

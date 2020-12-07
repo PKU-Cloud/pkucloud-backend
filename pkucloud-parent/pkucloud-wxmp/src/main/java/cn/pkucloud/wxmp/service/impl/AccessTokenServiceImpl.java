@@ -1,6 +1,6 @@
 package cn.pkucloud.wxmp.service.impl;
 
-import cn.pkucloud.wxmp.entity.wx.AccessToken;
+import cn.pkucloud.wxmp.dto.wx.AccessToken;
 import cn.pkucloud.wxmp.feign.MpClient;
 import cn.pkucloud.wxmp.service.AccessTokenService;
 import org.springframework.beans.factory.annotation.Value;

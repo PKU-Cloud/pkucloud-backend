@@ -1,8 +1,8 @@
 package cn.pkucloud.wxmp.service.impl;
 
 import cn.pkucloud.common.Result;
-import cn.pkucloud.wxmp.entity.wx.Signature;
-import cn.pkucloud.wxmp.entity.wx.Ticket;
+import cn.pkucloud.wxmp.dto.wx.Signature;
+import cn.pkucloud.wxmp.dto.wx.Ticket;
 import cn.pkucloud.wxmp.feign.MpClient;
 import cn.pkucloud.wxmp.service.AccessTokenService;
 import cn.pkucloud.wxmp.service.PublicService;
@@ -23,16 +23,10 @@ public class PublicServiceImpl implements PublicService {
 
     private final MpClient mpClient;
 
-    @Value("${wx.mp.appid}")
-    private String APPID;
-
-    @Value("${wx.mp.secret}")
-    private String SECRET;
-
-    public PublicServiceImpl(StringRedisTemplate redisTemplate, MpClient mpClient, AccessTokenService accessTokenService) {
+    public PublicServiceImpl(AccessTokenService accessTokenService, StringRedisTemplate redisTemplate, MpClient mpClient) {
+        this.accessTokenService = accessTokenService;
         this.redisTemplate = redisTemplate;
         this.mpClient = mpClient;
-        this.accessTokenService = accessTokenService;
     }
 
     private String getJsapiTicket() {
@@ -63,6 +57,7 @@ public class PublicServiceImpl implements PublicService {
                 "&timestamp=" + timestamp +
                 "&url=" + url;
         String signature = DigestUtils.sha1Hex(strToSign);
-        return new Result<>(new Signature(nonceStr, timestamp, signature));
+        Signature sign = new Signature(nonceStr, timestamp, signature);
+        return new Result<>(sign);
     }
 }

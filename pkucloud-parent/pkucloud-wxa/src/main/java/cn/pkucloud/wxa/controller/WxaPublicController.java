@@ -19,14 +19,14 @@ public class WxaPublicController {
     @GetMapping("scene")
     public Result<String> getScene(@RequestHeader("X-Real-IP") String ip,
                                    @RequestHeader("User-Agent") String ua) throws JsonProcessingException {
-        return wxaService.getScene(ip, ua);
+        return wxaService.getScene("192.168.0.100", ua);
     }
 
     @GetMapping(value = "code/{scene}", produces = "image/jpeg")
-    public byte[] getWxaCode(@RequestHeader("X-Real-IP") String ip,
+    public byte[] getWxaCode(
                              @RequestHeader("User-Agent") String ua,
                              @PathVariable String scene) throws JsonProcessingException {
-        return wxaService.getWxaCode(ip, ua, scene);
+        return wxaService.getWxaCode("192.168.0.100", ua, scene);
     }
 
     @GetMapping("scene/{scene}")

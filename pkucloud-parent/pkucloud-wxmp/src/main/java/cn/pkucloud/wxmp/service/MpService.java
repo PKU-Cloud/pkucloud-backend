@@ -1,7 +1,7 @@
 package cn.pkucloud.wxmp.service;
 
-import cn.pkucloud.wxmp.entity.wx.XmlRequest;
-import cn.pkucloud.wxmp.entity.wx.XmlResponse;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlRequest;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlResponse;
 import cn.pkucloud.wxmp.exception.AesException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 

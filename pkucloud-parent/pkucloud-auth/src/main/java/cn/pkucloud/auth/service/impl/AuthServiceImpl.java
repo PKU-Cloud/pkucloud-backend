@@ -17,12 +17,16 @@ import com.baomidou.mybatisplus.core.incrementer.DefaultIdentifierGenerator;
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -125,11 +129,12 @@ public class AuthServiceImpl implements AuthService {
             Auth auth = getByWxUnionId(unionid);
             if (null != auth) {
                 // 登录
+                String jws = signJwt(auth.getId());
+                return new Result<>(jws);
             } else {
                 // 要求注册
                 return new Result<>(AUTHORIZATION_REQUIRED, "please register first");
             }
-            return new Result<>();
         }
         return new Result<>(BAD_REQUEST, "bad request");
     }
@@ -143,6 +148,7 @@ public class AuthServiceImpl implements AuthService {
         String pkuId = pkuUserInfoDto.getPkuId();
         Auth wxAuth = getByWxUnionId(wxUnionId);
         Auth pkuAuth = getByPkuId(pkuId);
+        long id = 0;
         int timestamp = (int) (System.currentTimeMillis() / 1000);
         WxUserInfo wxUserInfo = new WxUserInfo(wxaUserInfoDto, timestamp, timestamp);
         if (null == wxAuth) {
@@ -153,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         }
         PkuUserInfo pkuUserInfo = new PkuUserInfo(pkuUserInfoDto, timestamp, timestamp);
         if (null == pkuAuth) {
-            long id = (long) identifierGenerator.nextId(null);
+            id = (long) identifierGenerator.nextId(null);
             Auth auth = Auth.builder()
                     .id(id)
                     .status(0)
@@ -167,7 +173,7 @@ public class AuthServiceImpl implements AuthService {
 
             pkuUserInfoMapper.insert(pkuUserInfo);
         } else {
-            long id = pkuAuth.getId();
+            id = pkuAuth.getId();
             Auth auth = Auth.builder()
                     .id(id)
                     .accessTime(timestamp)
@@ -177,7 +183,8 @@ public class AuthServiceImpl implements AuthService {
             pkuUserInfo.setCreateTime(0);
             pkuUserInfoMapper.updateById(pkuUserInfo);
         }
-        return null;
+        String jws = signJwt(id);
+        return new Result<>(jws);
     }
 
     @Override
@@ -207,8 +214,13 @@ public class AuthServiceImpl implements AuthService {
         return authMapper.selectOne(wrapper);
     }
 
-    private String signJwt(String id) {
+    private String signJwt(long id) {
         SignatureAlgorithm algorithm = SignatureAlgorithm.HS256;
-        return null;
+        Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(id))
+                .signWith(key)
+                .compact();
     }
 }

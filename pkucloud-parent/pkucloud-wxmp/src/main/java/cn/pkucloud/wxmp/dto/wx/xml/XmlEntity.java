@@ -1,4 +1,4 @@
-package cn.pkucloud.wxmp.entity.wx;
+package cn.pkucloud.wxmp.dto.wx.xml;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -40,6 +40,9 @@ public class XmlEntity {
     @JacksonXmlProperty(localName = "Format")
     private String format;
 
+    @JacksonXmlProperty(localName = "Recognition")
+    private String recognition;
+
     @JacksonXmlProperty(localName = "Location_X")
     private double location_X;
 
@@ -56,6 +59,9 @@ public class XmlEntity {
     private String title;
 
     @JacksonXmlProperty(localName = "Description")
+    private String description;
+
+    @JacksonXmlProperty(localName = "Url")
     private String url;
 
     @JacksonXmlProperty(localName = "Event")

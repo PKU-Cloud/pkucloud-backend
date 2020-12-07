@@ -1,4 +1,4 @@
-package cn.pkucloud.wxmp.entity.wx;
+package cn.pkucloud.wxmp.dto.wx;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

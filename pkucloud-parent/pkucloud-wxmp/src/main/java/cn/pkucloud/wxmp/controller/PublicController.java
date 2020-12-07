@@ -1,13 +1,17 @@
 package cn.pkucloud.wxmp.controller;
 
 import cn.pkucloud.common.Result;
-import cn.pkucloud.wxmp.entity.wx.Signature;
+import cn.pkucloud.wxmp.dto.wx.Signature;
 import cn.pkucloud.wxmp.service.PublicService;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping(value = "api", produces = "application/json")
-@CrossOrigin
+@Validated
+@CrossOrigin(origins = {"https://sso.pkucloud.cn"})
 public class PublicController {
     private final PublicService publicService;
 
@@ -16,7 +20,7 @@ public class PublicController {
     }
 
     @GetMapping("signature")
-    public Result<Signature> getSignature(@RequestParam String url) {
+    public Result<Signature> getSignature(@NotBlank String url) {
         return publicService.getSignature(url);
     }
 }

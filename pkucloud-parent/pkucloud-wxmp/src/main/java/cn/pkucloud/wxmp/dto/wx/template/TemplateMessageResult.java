@@ -1,5 +1,6 @@
-package cn.pkucloud.wxmp.entity.wx;
+package cn.pkucloud.wxmp.dto.wx.template;
 
+import cn.pkucloud.wxmp.dto.wx.BaseResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

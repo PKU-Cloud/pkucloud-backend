@@ -1,7 +1,7 @@
 package cn.pkucloud.wxmp.controller;
 
-import cn.pkucloud.wxmp.entity.wx.XmlRequest;
-import cn.pkucloud.wxmp.entity.wx.XmlResponse;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlRequest;
+import cn.pkucloud.wxmp.dto.wx.xml.XmlResponse;
 import cn.pkucloud.wxmp.exception.AesException;
 import cn.pkucloud.wxmp.service.MpService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -9,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @RestController
 @RequestMapping("mp")
@@ -21,32 +23,21 @@ public class MpController {
     }
 
     @GetMapping
-    public String echo(@NotBlank(message = "signature required") String signature,
-                       @NotBlank(message = "echostr required") String echostr,
-                       @NotBlank(message = "timestamp required") int timestamp,
-                       @NotBlank(message = "nonce required") String nonce) {
-        System.out.println("signature = " + signature);
-        System.out.println("echostr = " + echostr);
-        System.out.println("timestamp = " + timestamp);
-        System.out.println("nonce = " + nonce);
+    public String echo(@NotBlank String signature,
+                       @NotBlank String echostr,
+                       @Positive int timestamp,
+                       @NotBlank String nonce) {
         return mpService.echo(signature, echostr, timestamp, nonce);
     }
 
     @PostMapping(consumes = "text/xml", produces = "text/xml")
-    public XmlResponse msgHandler(@RequestParam String signature,
-                                  @RequestParam int timestamp,
-                                  @RequestParam String nonce,
-                                  @RequestParam String openid,
-                                  @RequestParam String encrypt_type,
-                                  @RequestParam String msg_signature,
-                                  @RequestBody XmlRequest request) throws AesException, JsonProcessingException {
-        System.out.println("signature = " + signature);
-        System.out.println("timestamp = " + timestamp);
-        System.out.println("nonce = " + nonce);
-        System.out.println("openid = " + openid);
-        System.out.println("encrypt_type = " + encrypt_type);
-        System.out.println("msg_signature = " + msg_signature);
-        System.out.println("request = " + request);
-        return mpService.msgHandler(signature, timestamp, nonce, openid, encrypt_type, msg_signature, request);
+    public XmlResponse msgHandler(@NotBlank @RequestParam String signature,
+                                  @Positive @RequestParam int timestamp,
+                                  @NotBlank @RequestParam String nonce,
+                                  @NotBlank @RequestParam String openid,
+                                  @NotBlank @RequestParam String encrypt_type,
+                                  @NotBlank @RequestParam String msg_signature,
+                                  @NotNull @RequestBody XmlRequest xmlRequest) throws AesException, JsonProcessingException {
+        return mpService.msgHandler(signature, timestamp, nonce, openid, encrypt_type, msg_signature, xmlRequest);
     }
 }

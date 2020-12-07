@@ -1,7 +1,6 @@
 package cn.pkucloud.auth.controller;
 
 import cn.pkucloud.auth.entity.Auth;
-import cn.pkucloud.auth.entity.WxUserInfo;
 import cn.pkucloud.auth.service.AuthService;
 import cn.pkucloud.common.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;

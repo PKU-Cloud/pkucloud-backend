@@ -2,13 +2,11 @@ package cn.pkucloud.wxmp.controller;
 
 import cn.pkucloud.common.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import static cn.pkucloud.common.ResultCode.BAD_REQUEST;
 
 @RestControllerAdvice
-@RequestMapping(produces = "application/json")
 public class BaseExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Result<?> handler(Exception e) {
